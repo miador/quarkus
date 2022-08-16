@@ -211,6 +211,9 @@ public class InfinispanClientProducer {
         if (infinispanClientRuntimeConfig.trustStoreType.isPresent()) {
             properties.put(ConfigurationProperties.TRUST_STORE_TYPE, infinispanClientRuntimeConfig.trustStoreType.get());
         }
+        if (!infinispanClientRuntimeConfig.cache.isEmpty()) {
+            infinispanClientRuntimeConfig.cache.forEach((key, value) -> builder.remoteCache(key).configuration(value));
+        }
 
         builder.withProperties(properties);
 

@@ -1,5 +1,7 @@
 package io.quarkus.infinispan.client.runtime;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.net.ssl.SSLContext;
@@ -127,6 +129,12 @@ public class InfinispanClientRuntimeConfig {
      */
     @ConfigItem
     Optional<String> trustStoreType;
+
+    /**
+     * Creates the caches, if provided.
+     */
+    @ConfigItem
+    Map<String, String> cache = new HashMap<>();
 
     @Override
     public String toString() {
