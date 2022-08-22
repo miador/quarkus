@@ -25,6 +25,9 @@ import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 import org.infinispan.client.hotrod.impl.ConfigurationProperties;
 import org.infinispan.client.hotrod.logging.Log;
 import org.infinispan.client.hotrod.logging.LogFactory;
+import org.infinispan.client.hotrod.multimap.MultimapCacheManager;
+import org.infinispan.client.hotrod.multimap.RemoteMultimapCache;
+import org.infinispan.client.hotrod.multimap.RemoteMultimapCacheManagerFactory;
 import org.infinispan.commons.marshall.Marshaller;
 import org.infinispan.commons.marshall.ProtoStreamMarshaller;
 import org.infinispan.commons.util.Util;
@@ -334,6 +337,22 @@ public class InfinispanClientProducer {
         return null;
     }
 
+    @io.quarkus.infinispan.client.Multimap
+    @Produces
+    public <K, V> RemoteMultimapCache<K, V> getRemoteMultimapCache(InjectionPoint injectionPoint, RemoteCacheManager cacheManager) {
+        Set<Annotation> annotationSet = injectionPoint.getQualifiers();
+
+        final io.quarkus.infinispan.client.Multimap multimap = getMultimapAnnotation(annotationSet);
+
+        MultimapCacheManager<K, V> multimapCacheManager = RemoteMultimapCacheManagerFactory.from(cacheManager);
+
+        if (cacheManager != null && multimap != null && !multimap.value().isEmpty()) {
+            return multimapCacheManager.get(multimap.value());
+        }
+
+        throw new RuntimeException("Multimap name cannot be empty");
+    }
+
     @Produces
     public CounterManager counterManager() {
         RemoteCacheManager cacheManager = remoteCacheManager();
@@ -367,6 +386,21 @@ public class InfinispanClientProducer {
         for (Annotation annotation : annotationSet) {
             if (annotation instanceof io.quarkus.infinispan.client.Remote) {
                 return (io.quarkus.infinispan.client.Remote) annotation;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Retrieves the deprecated {@link io.quarkus.infinispan.client.Multimap} annotation instance from the set
+     *
+     * @param annotationSet the annotation set.
+     * @return the {@link io.quarkus.infinispan.client.Multimap} annotation instance or {@code null} if not found.
+     */
+    private io.quarkus.infinispan.client.Multimap getMultimapAnnotation(Set<Annotation> annotationSet) {
+        for (Annotation annotation : annotationSet) {
+            if (annotation instanceof io.quarkus.infinispan.client.Multimap) {
+                return (io.quarkus.infinispan.client.Multimap) annotation;
             }
         }
         return null;
