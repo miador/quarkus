@@ -51,4 +51,19 @@ public class InfinispanClientFunctionalityTest {
     public void testQueryWithCustomMarshaller() {
         RestAssured.when().get("/test/magazinequery/IM").then().body(is("[TIME:1923-03,TIME:1997-04]"));
     }
+
+    @Test
+    public void testMultimapSize() {
+        RestAssured.when().get("/bookmultimap/size").then().body(is(2));
+    }
+
+    @Test
+    public void testBookMultimap() {
+        RestAssured.when().get("/bookmultimap/book1").then().body(is("Game of Thrones"));
+    }
+
+    @Test
+    public void testPutBookMultimap() {
+        RestAssured.given().and().body("A song of ice and fire").when().put("/bookmultimap/book1").then().body(is("book1"));
+    }
 }

@@ -337,9 +337,10 @@ public class InfinispanClientProducer {
         return null;
     }
 
-    @io.quarkus.infinispan.client.Multimap
+    @io.quarkus.infinispan.client.Multimap()
     @Produces
-    public <K, V> RemoteMultimapCache<K, V> getRemoteMultimapCache(InjectionPoint injectionPoint, RemoteCacheManager cacheManager) {
+    public <K, V> RemoteMultimapCache<K, V> getRemoteMultimapCache(InjectionPoint injectionPoint,
+            RemoteCacheManager cacheManager) {
         Set<Annotation> annotationSet = injectionPoint.getQualifiers();
 
         final io.quarkus.infinispan.client.Multimap multimap = getMultimapAnnotation(annotationSet);

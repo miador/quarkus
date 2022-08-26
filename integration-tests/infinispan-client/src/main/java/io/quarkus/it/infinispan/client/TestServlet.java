@@ -1,19 +1,16 @@
 package io.quarkus.it.infinispan.client;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -22,6 +19,7 @@ import org.infinispan.client.hotrod.Search;
 import org.infinispan.client.hotrod.jmx.RemoteCacheClientStatisticsMXBean;
 import org.infinispan.client.hotrod.logging.Log;
 import org.infinispan.client.hotrod.logging.LogFactory;
+import org.infinispan.client.hotrod.multimap.RemoteMultimapCache;
 import org.infinispan.counter.api.CounterConfiguration;
 import org.infinispan.counter.api.CounterManager;
 import org.infinispan.counter.api.CounterType;
@@ -29,6 +27,7 @@ import org.infinispan.counter.api.StrongCounter;
 import org.infinispan.query.dsl.Query;
 import org.infinispan.query.dsl.QueryFactory;
 
+import io.quarkus.infinispan.client.Multimap;
 import io.quarkus.infinispan.client.Remote;
 
 @Path("/test")
@@ -45,6 +44,10 @@ public class TestServlet {
     @Inject
     @Remote(CacheSetup.MAGAZINE_CACHE)
     RemoteCache<String, Magazine> magazineCache;
+
+    @Inject
+    @Multimap(CacheSetup.DEFAULT_CACHE)
+    RemoteMultimapCache<String, Book> bookRemoteMultimapCache;
 
     @Inject
     CounterManager counterManager;
@@ -233,5 +236,41 @@ public class TestServlet {
         return list.stream()
                 .map(m -> m.getName() + ":" + m.getPublicationYearMonth())
                 .collect(Collectors.joining(",", "[", "]"));
+    }
+
+    @Path("bookmultimap/{id}")
+    @GET
+    public String bookMultimapTitle(@PathParam("id") String name) {
+        cacheSetup.ensureStarted();
+        try {
+            return bookRemoteMultimapCache.get(name).get().stream().findFirst().get().getTitle();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Path("bookmultimap/size")
+    @GET
+    public long bookMultimapSize() {
+        cacheSetup.ensureStarted();
+        try {
+            return bookRemoteMultimapCache.size().get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Path("bookmultimap/{id}")
+    @PUT
+    @Consumes(MediaType.TEXT_PLAIN)
+    public Response createBookMultimap(String value, @PathParam("id") String id) {
+        cacheSetup.ensureStarted();
+        Book book = new Book(id, value, 2019, Collections.emptySet(), Type.FANTASY, new BigDecimal("9.99"));
+
+        bookRemoteMultimapCache.put(id, book);
+
+        return Response.status(Response.Status.CREATED)
+                .entity(id)
+                .build();
     }
 }
