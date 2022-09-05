@@ -64,6 +64,7 @@ public class InfinispanClientFunctionalityTest {
 
     @Test
     public void testPutBookMultimap() {
-        RestAssured.given().and().body("A song of ice and fire").when().put("/test/bookmultimap/book1").then().body(is("book1"));
+        RestAssured.given().and().body("A song of ice and fire").when().put("/test/bookmultimap/book1").then()
+                .body(is("book1"));
     }
 }
