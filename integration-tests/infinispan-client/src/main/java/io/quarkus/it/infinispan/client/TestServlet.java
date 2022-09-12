@@ -1,6 +1,7 @@
 package io.quarkus.it.infinispan.client;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -50,7 +51,7 @@ public class TestServlet {
     RemoteCache<String, Magazine> magazineCache;
 
     @Inject
-    @Multimap(CacheSetup.DEFAULT_CACHE)
+    @Multimap(CacheSetup.MULTIMAP_DEFAULT_CACHE)
     RemoteMultimapCache<String, Book> bookRemoteMultimapCache;
 
     @Inject
@@ -246,22 +247,14 @@ public class TestServlet {
     @GET
     public String bookMultimapTitle(@PathParam("id") String name) {
         cacheSetup.ensureStarted();
-        try {
-            return bookRemoteMultimapCache.get(name).get().stream().findFirst().get().getTitle();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
+        return bookRemoteMultimapCache.get( name ).join().stream().findFirst().get().getTitle();
     }
 
     @Path("bookmultimap/size")
     @GET
     public long bookMultimapSize() {
         cacheSetup.ensureStarted();
-        try {
-            return bookRemoteMultimapCache.size().get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
+        return bookRemoteMultimapCache.size().join();
     }
 
     @Path("bookmultimap/{id}")
@@ -271,7 +264,7 @@ public class TestServlet {
         cacheSetup.ensureStarted();
         Book book = new Book(id, value, 2019, Collections.emptySet(), Type.FANTASY, new BigDecimal("9.99"));
 
-        bookRemoteMultimapCache.put(id, book);
+        bookRemoteMultimapCache.put(id, book).join();
 
         return Response.status(Response.Status.CREATED)
                 .entity(id)

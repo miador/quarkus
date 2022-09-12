@@ -40,6 +40,8 @@ public class CacheSetup {
 
     public static final String DEFAULT_CACHE = "default";
     public static final String MAGAZINE_CACHE = "magazine";
+    public static final String MULTIMAP_DEFAULT_CACHE = "multimap";
+
 
     @Inject
     RemoteCacheManager cacheManager;
@@ -51,6 +53,9 @@ public class CacheSetup {
     void onStart(@Observes StartupEvent ev) {
         RemoteCache<String, Book> defaultCache = cacheManager.getCache(DEFAULT_CACHE);
         RemoteCache<String, Magazine> magazineCache = cacheManager.getCache(MAGAZINE_CACHE);
+
+        RemoteCache<String, Book> multimapCache = cacheManager.getCache(MULTIMAP_DEFAULT_CACHE);
+
         defaultCache.addClientListener(new EventPrintListener());
 
         ContinuousQuery<String, Book> continuousQuery = Search.getContinuousQuery(defaultCache);
@@ -93,6 +98,13 @@ public class CacheSetup {
                         "German Reparation Payments")));
         magazineCache.put("popular-time", new Magazine("TIME", YearMonth.of(1997, 4),
                 Arrays.asList("Yep, I'm gay", "Backlash against HMOS", "False Hope on Breast Cancer?")));
+
+
+        multimapCache.put("book1", new Book("Game of Thrones", "Lots of people perish", 2010,
+                Collections.singleton(new Author("George", "Martin")), Type.FANTASY, new BigDecimal("23.99")));
+
+        multimapCache.put("book2", new Book("Game of Thrones Path 2", "They win?", 2023,
+                Collections.singleton(new Author("Son", "Martin")), Type.FANTASY, new BigDecimal("54.99")));
 
         waitUntilStarted.countDown();
     }

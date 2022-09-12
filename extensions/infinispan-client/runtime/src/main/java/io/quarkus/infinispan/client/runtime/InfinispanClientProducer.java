@@ -337,7 +337,7 @@ public class InfinispanClientProducer {
         return null;
     }
 
-    @io.quarkus.infinispan.client.Multimap()
+    @io.quarkus.infinispan.client.Multimap
     @Produces
     public <K, V> RemoteMultimapCache<K, V> getRemoteMultimapCache(InjectionPoint injectionPoint,
             RemoteCacheManager cacheManager) {
@@ -348,7 +348,7 @@ public class InfinispanClientProducer {
         MultimapCacheManager<K, V> multimapCacheManager = RemoteMultimapCacheManagerFactory.from(cacheManager);
 
         if (cacheManager != null && multimap != null && !multimap.value().isEmpty()) {
-            return multimapCacheManager.get(multimap.value());
+            return multimapCacheManager.get( multimap.value() );
         }
 
         throw new RuntimeException("Multimap name cannot be empty");
